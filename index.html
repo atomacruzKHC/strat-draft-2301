@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kingston Strategic Growth Hub 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+        .animate-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Optimized Icon Component
+        const Icon = ({ name, size = 18, className = "" }) => {
+            // Lucide attaches icons to the global 'lucide' object with PascalCase
+            const iconName = name.charAt(0).toUpperCase() + name.slice(1);
+            const LucideIcon = window.lucide ? window.lucide[iconName] : null;
+
+            if (!LucideIcon) {
+                // Fallback to a simple circle if icon is missing
+                return <span style={{ width: size, height: size }} className={`inline-block rounded-full bg-current opacity-20 ${className}`} />;
+            }
+
+            // Create the SVG using Lucide's internal structure
+            // In the UMD build, icons are objects with a 'createElement' or are functions
+            return (
+                <span 
+                    className={`inline-flex items-center justify-center ${className}`}
+                    dangerouslySetInnerHTML={{ 
+                        __html: window.lucide.createIcons({
+                            icons: { [name]: window.lucide[iconName] },
+                            attrs: { width: size, height: size, "stroke-width": 2 }
+                        }) 
+                    }}
+                />
+            );
+        };
+
+        // Standardized Icon rendering for the UMD version
+        const LucideIcon = ({ name, size = 18, className = "" }) => {
+            const [svg, setSvg] = useState('');
+
+            useEffect(() => {
+                if (window.lucide) {
+                    const formattedName = name.split('-').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('');
+                    const icon = window.lucide[formattedName] || window.lucide[name.charAt(0).toUpperCase() + name.slice(1)];
+                    
+                    if (icon) {
+                        // Lucide icons in UMD are arrays of [tag, attrs, children]
+                        const toSvg = (node) => {
+                            const [tag, attrs, children = []] = node;
+                            const attrString = Object.entries(attrs)
+                                .map(([key, val]) => `${key}="${val}"`)
+                                .join(' ');
+                            const childrenString = children.map(toSvg).join('');
+                            return `<${tag} ${attrString}>${childrenString}</${tag}>`;
+                        };
+
+                        const svgContent = icon.map(toSvg).join('');
+                        setSvg(`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}">${svgContent}</svg>`);
+                    }
+                }
+            }, [name, size, className]);
+
+            return <span dangerouslySetInnerHTML={{ __html: svg }} />;
+        };
+
+        /* --- SHARED COMPONENTS --- */
+        const SectionBlock = ({ title, why, how, steps, validation, measurement, iconName, children }) => (
+            <div className="space-y-8 animate-in">
+                <header className="flex items-center gap-4 border-b border-slate-200 pb-6">
+                    <div className="p-3 bg-blue-600 text-white rounded-xl shadow-lg">
+                        <LucideIcon name={iconName || "Target"} size={28} />
+                    </div>
+                    <h2 className="text-3xl font-bold text-slate-900 tracking-tight">{title}</h2>
+                </header>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div className="space-y-6">
+                        <section>
+                            <h4 className="flex items-center gap-2 text-blue-600 font-bold uppercase text-xs tracking-widest mb-2">
+                                <LucideIcon name="AlertCircle" size={14} /> The Strategic Rationale
+                            </h4>
+                            <p className="text-slate-700 leading-relaxed text-sm">{why}</p>
+                        </section>
+                        <section>
+                            <h4 className="flex items-center gap-2 text-blue-600 font-bold uppercase text-xs tracking-widest mb-2">
+                                <LucideIcon name="Zap" size={14} /> Operational Methodology
+                            </h4>
+                            <p className="text-slate-700 leading-relaxed text-sm">{how}</p>
+                        </section>
+                    </div>
+
+                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6">
+                        <h4 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
+                            <LucideIcon name="ChevronRight" size={18} className="text-blue-600" /> Implementation Roadmap
+                        </h4>
+                        <div className="space-y-4">
+                            {steps.map((step, idx) => (
+                                <div key={idx} className="flex gap-4">
+                                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-[10px] flex items-center justify-center font-bold">
+                                        {idx + 1}
+                                    </span>
+                                    <p className="text-xs text-slate-600 leading-snug">{step}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {children}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                    <div className="p-6 bg-slate-100 rounded-xl">
+                        <h4 className="font-bold text-slate-800 flex items-center gap-2 mb-2 text-sm">
+                            <LucideIcon name="CheckCircle2" size={18} className="text-green-600" /> Feasibility Validation
+                        </h4>
+                        <p className="text-xs text-slate-600">{validation}</p>
+                    </div>
+                    <div className="p-6 bg-blue-600 rounded-xl text-white shadow-lg">
+                        <h4 className="font-bold flex items-center gap-2 mb-2 uppercase text-[10px] tracking-widest text-blue-100">
+                            <LucideIcon name="Target" size={18} /> Performance Metrics
+                        </h4>
+                        <p className="text-md font-bold">{measurement}</p>
+                    </div>
+                </div>
+            </div>
+        );
+
+        const DashboardView = () => (
+            <div className="space-y-10 animate-in">
+                <header className="border-b border-slate-200 pb-8">
+                    <h2 className="text-4xl font-extrabold text-slate-900 tracking-tight">Project Glow: 2026 Strategy</h2>
+                    <p className="text-xl text-slate-500 mt-2 italic font-serif">"Scaling our 13-year Queensland legacy into national market dominance."</p>
+                </header>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="p-8 bg-white rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl transition-all">
+                        <h3 className="text-2xl font-bold mb-4 flex items-center gap-3">
+                            <LucideIcon name="ShieldCheck" className="text-blue-600" /> The Competitive Moat
+                        </h3>
+                        <p className="text-slate-600 leading-relaxed text-sm">
+                            Kingston is leveraging its reputation as a <strong>Queensland-owned specialist</strong> to own high-stakes practice areas. By combining Elizabeth Kingston’s founding vision with over <strong>20 years of collective executive search expertise</strong>, we demonstrate to government procurement that we are the safest, most expert partner for complex talent requirements.
+                        </p>
+                    </div>
+
+                    <div className="p-8 bg-slate-900 text-white rounded-3xl shadow-lg relative overflow-hidden">
+                        <div className="relative z-10">
+                            <h3 className="text-2xl font-bold mb-3 text-blue-300 uppercase tracking-tighter">The Mandate</h3>
+                            <p className="text-slate-300 leading-relaxed text-md">
+                                Execute the 'Land and Expand' protocol. Secure panel positions via RaaS and specialised bidding, then aggressively scale volume through our established government and commercial desks.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+
+        const ExecutiveSearchView = () => (
+            <SectionBlock 
+                title="Executive Search: Governance Advisory"
+                iconName="Users"
+                why="With Gerard Kerr leading our search efforts, we manage organisational risk for Boards and CEOs. By positioning Kingston as a 'Governance Advisor,' we pivot the conversation from 'Finding a candidate' to 'Securing the Department’s future.' This aligns with our 97% placement retention rate over three years."
+                how="We will productise our search process. Instead of delivering standard resumes, we provide a 'Leadership Risk Assessment' and 'Market Mapping Report' to all selection panel members. This offers immediate strategic value prior to any appointment."
+                steps={[
+                    "WHEN: Month 1 - Redesign search proposals to include 'Market Intelligence' as a core contract deliverable.",
+                    "WHO: Executive Search Directors to lead sector-specific briefing sessions with specialised consultants.",
+                    "HOW: Leverage our 'streak' of successful placements (134+ weeks retention) to demonstrate reliability in complex executive hires.",
+                    "CLIENT ENGAGEMENT: Present the 'Landscape Map' early in the search cycle to reset client expectations and demonstrate sector authority."
+                ]}
+                validation="This is highly feasible as we already possess high-quality historical data and active candidate networks. The pivot is purely in how we package and present this existing expertise."
+                measurement="Conversion Ratio: Aim to increase the pitch-to-win ratio from 1:4 to 2:4 through demonstrated market intelligence."
+            >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                        <div className="bg-slate-900 px-4 py-2 flex items-center justify-between">
+                            <span className="text-[10px] text-blue-400 font-bold uppercase tracking-widest">Deliverable Alpha</span>
+                            <LucideIcon name="FileText" size={14} className="text-slate-400" />
+                        </div>
+                        <div className="p-5">
+                            <h5 className="font-bold text-sm text-slate-800 mb-3 border-b pb-1">Leadership Risk Assessment (Sample)</h5>
+                            <div className="space-y-3">
+                                <div className="flex justify-between items-center text-[10px] border-b border-slate-50 pb-1">
+                                    <span className="text-slate-500 italic">Core Competency: Governance</span>
+                                    <span className="text-green-600 font-bold">High Alignment</span>
+                                </div>
+                                <div className="p-2 bg-slate-50 rounded border border-slate-100">
+                                    <p className="text-[9px] text-slate-600 leading-tight italic">"Candidate A demonstrates strong fiscal oversight but presents a cultural integration risk. Mitigation: 90-day onboarding mentorship."</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                        <div className="bg-blue-600 px-4 py-2 flex items-center justify-between">
+                            <span className="text-[10px] text-white font-bold uppercase tracking-widest">Deliverable Beta</span>
+                            <LucideIcon name="BarChart3" size={14} className="text-white opacity-60" />
+                        </div>
+                        <div className="p-5">
+                            <h5 className="font-bold text-sm text-slate-800 mb-3 border-b pb-1">Executive Market Map (Sample)</h5>
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                        <div className="bg-blue-600 h-full w-[70%]" />
+                                    </div>
+                                    <span className="text-[9px] font-bold text-slate-600">Tier 1 Peers</span>
+                                </div>
+                                <p className="text-[9px] text-slate-500 mt-2 italic">85% of sector peers cite 'Purpose over Pay' as the primary 2026 driver.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </SectionBlock>
+        );
+
+        const App = () => {
+            const [activeTab, setActiveTab] = useState('dashboard');
+
+            const navItems = [
+                { id: 'dashboard', label: 'Strategy Dashboard', icon: 'TrendingUp' },
+                { id: 'exec', label: 'Executive Search Expansion', icon: 'Users' },
+                { id: 'raas', label: 'RaaS Revenue Engine', icon: 'ClipboardCheck' },
+                { id: 'gov', label: 'Government Desk Mastery', icon: 'ShieldCheck' },
+                { id: 'bidding', label: 'Market Penetration & Bids', icon: 'Gavel' },
+                { id: 'survey', label: 'Lost-Bid Intelligence', icon: 'PieChart' },
+            ];
+
+            const renderContent = () => {
+                switch (activeTab) {
+                    case 'dashboard': return <DashboardView />;
+                    case 'exec': return <ExecutiveSearchView />;
+                    case 'raas': return <SectionBlock title="RaaS: The Revenue Engine" iconName="ClipboardCheck" why="Under the leadership of Michelle Bassett, RaaS provides the essential 'foot in the door'." how="Position RaaS as an essential Compliance Guardrail for departmental selection reports." steps={["Identify active panels","Bundle Scribing","Refine reporting","Deepen integration"]} validation="Proven track record." measurement="2 leads for every 5 engagements." />;
+                    case 'gov': return <SectionBlock title="Government Desks: Mastery" iconName="ShieldCheck" why="Move from 'CV provider' to 'Practice Leader'." how="Pitch 'Instant Capacity' with pre-vetted blitz teams." steps={["Identify recurring roles","Conduct Glow Interviews","Distribute Snapshots","Utilize RaaS data"]} validation="Proven performance." measurement="3-day Time-to-Fill." />;
+                    case 'bidding': return <SectionBlock title="Market Penetration" iconName="Gavel" why="Leverage 'Buy Queensland' status." how="Dedicated internal bid management for Tier 1 quality." steps={["Appoint Bid Manager","Highlight QLD ownership","Deploy MIU","Generate Checklists"]} validation="Existing provider status." measurement="+50% Invitation rate." />;
+                    case 'survey': return (
+                        <div className="space-y-8 animate-in">
+                            <header className="flex items-center gap-4 border-b border-slate-200 pb-6">
+                                <div className="p-3 bg-yellow-500 text-white rounded-xl shadow-lg">
+                                    <LucideIcon name="PieChart" size={28} />
+                                </div>
+                                <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Lost-Bid Intelligence</h2>
+                            </header>
+                            <div className="bg-amber-50 border border-amber-200 p-8 rounded-3xl">
+                                <p className="text-amber-800 text-sm italic mb-4">"Understanding the 'No' is the bridge to the next 'Yes'."</p>
+                                <p className="text-slate-600 text-sm">Systematic anonymous feedback to identify genuine reasons for bid loss, allowing us to pivot technical responses for the next round of government procurement.</p>
+                            </div>
+                        </div>
+                    );
+                    default: return <DashboardView />;
+                }
+            };
+
+            return (
+                <div className="flex h-screen bg-slate-50 font-sans text-slate-900">
+                    <aside className="w-72 bg-slate-900 text-slate-300 flex flex-col shadow-xl flex-shrink-0">
+                        <div className="p-8 border-b border-slate-800 text-center">
+                            <h1 className="text-2xl font-bold text-white tracking-tighter uppercase italic">Kingston</h1>
+                            <p className="text-[10px] text-blue-400 font-bold uppercase tracking-widest mt-1">Strategic Growth Hub 2026</p>
+                        </div>
+                        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+                            {navItems.map((item) => (
+                                <button 
+                                    key={item.id} 
+                                    onClick={() => setActiveTab(item.id)} 
+                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-left ${activeTab === item.id ? 'bg-blue-600 text-white shadow-lg' : 'hover:bg-slate-800 hover:text-white'}`}
+                                >
+                                    <LucideIcon name={item.icon} />
+                                    <span className="font-medium text-sm">{item.label}</span>
+                                </button>
+                            ))}
+                        </nav>
+                        <div className="p-6 mt-auto border-t border-slate-800">
+                            <div className="bg-slate-800 rounded-lg p-4">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                    <span className="text-xs text-slate-300">Internal Integrity Validated</span>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                    <main className="flex-1 overflow-y-auto">
+                        <div className="max-w-5xl mx-auto p-12">
+                            {renderContent()}
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
